@@ -10,16 +10,19 @@ A Programação Orientada a Objetos (POO) é um paradigma de programação que o
 #### Encapsulamento: A POO permite encapsular dados e funcionalidades dentro de objetos. Isso ajuda a dividir um programa complexo em partes menores e mais manejáveis. Cada classe pode ser desenvolvida, testada e mantida de forma independente.
 
 #### Reusabilidade: Classes e objetos podem ser reutilizados em diferentes programas sem modificações, promovendo o uso de código existente.
-Abstração:
+
+## Abstração:
 
 #### Ocultação de Implementação: Com a POO, você pode ocultar os detalhes de implementação e expor apenas o que é necessário. Isso ajuda a reduzir a complexidade e a focar no uso da classe em vez de como ela funciona internamente.
 
 #### Interfaces: Permitem definir contratos que as classes devem cumprir, promovendo um design orientado por responsabilidades e facilitando a substituição de implementações.
-Herança:
+
+##Herança:
 
 ####  Reuso de Código: Permite que novas classes herdem propriedades e métodos de classes existentes, economizando tempo e esforço no desenvolvimento.
 Hierarquia: Ajuda a organizar classes em uma hierarquia, tornando o código mais compreensível e extensível.
-Polimorfismo:
+
+##Polimorfismo:
 
 # Flexibilidade: O polimorfismo permite que uma interface seja usada para diferentes tipos de objetos, tornando o código mais flexível e extensível.
 Redução de Código: Métodos podem operar em diferentes tipos de objetos, reduzindo a necessidade de duplicação de código.
