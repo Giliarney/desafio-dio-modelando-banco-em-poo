@@ -1,6 +1,10 @@
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime
+from pathlib import Path
+import csv
+
+ROOT_PATH = Path(__file__).parent
 
 class ContaIterador:
     def __init__(self, contas):
@@ -38,6 +42,9 @@ class PessoaFisica(Cliente):
         self.nome = nome
         self.data_nascimento = data_nascimento
         self.cpf = cpf
+
+        def __repr__(self) -> str:
+            return f"<{self.__class__.__name__}: ({self.cpf})>"
 
 class Conta:
     def __init__(self, numero, cliente):
@@ -106,6 +113,9 @@ class ContaCorrente(Conta):
         else:
             return super().sacar(valor)
         return False
+    
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}: ('{self.agencia}', '{self.numero}', '{self.cliente.nome}')>"
     
     def __str__(self):
         return f"""
@@ -202,9 +212,11 @@ def recuperar_conta(cliente):
 
 def log_transacao(funcao):
     def exibir_log(*args, **kwargs):
+        resultado = funcao(*args, **kwargs)
         log = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-        print(f"Histórico de logs: {log} operação: {funcao.__name__}")
-        return funcao(*args, **kwargs)
+        with open(ROOT_PATH/ "log.txt", 'a') as arquivo:
+            arquivo.write(f"[{log}]  Funcão: '{funcao.__name__}' executada com argumentos {args}. Retornou {resultado}\n")
+        return resultado
     return exibir_log
 
 @log_transacao
@@ -284,7 +296,7 @@ def criar_nova_conta(numero_conta, usuarios, contas):
     if not cliente:
         print("Cliente não encontrado, faça um cadastro!\n")
         return
-
+    
     conta = ContaCorrente.nova_conta(cliente, numero_conta)
     contas.append(conta)
     cliente.adicionar_conta(conta)
@@ -299,6 +311,7 @@ def listar_contas(usuarios):
 
 @log_transacao
 def criar_usuario(usuarios):
+    id = 0
     print("\n===========Cadastro de Usuário===========\n")
 
     cpf = input("Informe seu CPF: ")
@@ -311,12 +324,19 @@ def criar_usuario(usuarios):
     nome = input("Informe seu nome completo: ")
     data_nascimento = input("Informe a data de nascimento conforme o modelo -> (DD/MM/AAAA): ")
     endereco = input("Informe seu endereço conforme o exemplo -> (Logradouro, Cidade - Sigla do Estado): ")
-
-    cliente = PessoaFisica(nome, data_nascimento, cpf, endereco) 
+    id += 1
     
+    with open(ROOT_PATH/ "clientes.txt", "a", newline='') as arquivo:
+        writer = csv.writer(arquivo)
+        writer.writerow(['nome', 'data_nascimento', 'cpf', 'endereco'])
+        writer.writerow([nome, data_nascimento, cpf, endereco])
+
+
+    cliente = PessoaFisica(nome, data_nascimento, cpf, endereco)
     usuarios.append(cliente)
 
     print(f"\nSeja bem-vindo {nome}, sua conta foi criada com sucesso. Você já pode utilizar os benefícios.\n")
+    
 
 def menu_pagina_inicial():
     print('''==============Seja bem-vindo ao banco DIO!==============\n
@@ -330,10 +350,24 @@ def menu_pagina_inicial():
         7 - Sair
     ''')
 
-def main():
+def carregar_usuarios():
     usuarios = []
-    contas = []
+    try:
+        with open(ROOT_PATH / "clientes.txt", "r") as arquivo:
+            reader = csv.reader(arquivo)
+            for row in reader:
+                if row:
+                    nome, data_nascimento, cpf, endereco = row
+                    usuario = PessoaFisica(nome, data_nascimento, cpf, endereco)
+                    usuarios.append(usuario)
+    except FileNotFoundError:
+        print("Arquivo não encontrado!")
+    return usuarios
 
+def main():
+    usuarios = carregar_usuarios() 
+    contas = []
+    
     while True:
         menu_pagina_inicial()
         numero_da_operacao = validar_escolha(1, 7)
@@ -342,7 +376,7 @@ def main():
             criar_usuario(usuarios)
         elif numero_da_operacao == 2:
             numero_da_conta = len(contas) + 1
-            criar_nova_conta(numero_da_conta, usuarios, contas)
+            criar_nova_conta(numero_da_conta , usuarios, contas)
         elif numero_da_operacao == 3:
             listar_contas(usuarios)
         elif numero_da_operacao == 4:
