@@ -1,10 +1,11 @@
-import time
+import csv
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-import csv
+
 
 ROOT_PATH = Path(__file__).parent
+
 
 class ContaIterador:
     def __init__(self, contas):
@@ -22,6 +23,7 @@ class ContaIterador:
         else:
             raise StopIteration
 
+
 class Cliente:
     def __init__(self, endereco):
         self.endereco = endereco
@@ -36,6 +38,7 @@ class Cliente:
     def adicionar_conta(self, conta):
         self.contas.append(conta)
 
+
 class PessoaFisica(Cliente):
     def __init__(self, nome, data_nascimento, cpf, endereco):
         super().__init__(endereco)
@@ -45,6 +48,7 @@ class PessoaFisica(Cliente):
 
         def __repr__(self) -> str:
             return f"<{self.__class__.__name__}: ({self.cpf})>"
+
 
 class Conta:
     def __init__(self, numero, cliente):
@@ -57,11 +61,11 @@ class Conta:
     @classmethod
     def nova_conta(cls, cliente, numero):
         return cls(numero, cliente)
-    
+
     @property
     def saldo(self):
         return self._saldo
-    
+
     @property
     def numero(self):
         return self._numero
@@ -69,11 +73,11 @@ class Conta:
     @property
     def agencia(self):
         return self._agencia
-    
+
     @property
     def cliente(self):
         return self._cliente
-    
+
     @property
     def historico(self):
         return self._historico
@@ -88,7 +92,7 @@ class Conta:
         else:
             print("A sua transação foi cancelada, tente novamente.")
             return False
-        
+
     def depositar(self, valor):
         if valor > 0:
             self._saldo += valor
@@ -96,6 +100,7 @@ class Conta:
         else:
             print("A sua transação foi cancelada, tente novamente.")
             return False
+
 
 class ContaCorrente(Conta):
     def __init__(self, numero, cliente, limite=1000, limite_saques=10):
@@ -113,16 +118,17 @@ class ContaCorrente(Conta):
         else:
             return super().sacar(valor)
         return False
-    
+
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}: ('{self.agencia}', '{self.numero}', '{self.cliente.nome}')>"
-    
+
     def __str__(self):
         return f"""
             Agência: {self.agencia}
             Conta Corrente: {self._numero}
             Titular: {self.cliente.nome}
         """
+
 
 class Historico:
     def __init__(self):
@@ -131,13 +137,13 @@ class Historico:
     @property
     def transacoes(self):
         return self._transacoes
-    
+
     def adicionar_transacao(self, transacao):
         self._transacoes.append(
             {
                 "tipo": transacao.__class__.__name__,
                 "valor": transacao.valor,
-                "data": datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+                "data": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
             }
         )
 
@@ -149,11 +155,12 @@ class Historico:
     def transacoes_dia(self):
         data = datetime.now().date()
         transacoes = [
-            transacao 
-            for transacao in self._transacoes 
+            transacao
+            for transacao in self._transacoes
             if datetime.strptime(transacao["data"], "%d-%m-%Y %H:%M:%S").date() == data
         ]
         return transacoes
+
 
 class Transacao(ABC):
     @property
@@ -165,6 +172,7 @@ class Transacao(ABC):
     def registrar(self, conta):
         pass
 
+
 class Saque(Transacao):
     def __init__(self, valor):
         self._valor = valor
@@ -172,10 +180,11 @@ class Saque(Transacao):
     @property
     def valor(self):
         return self._valor
-    
+
     def registrar(self, conta):
         if conta.sacar(self.valor):
             conta.historico.adicionar_transacao(self)
+
 
 class Deposito(Transacao):
     def __init__(self, valor):
@@ -184,10 +193,11 @@ class Deposito(Transacao):
     @property
     def valor(self):
         return self._valor
-    
+
     def registrar(self, conta):
         if conta.depositar(self.valor):
             conta.historico.adicionar_transacao(self)
+
 
 def validar_escolha(valor_minimo, valor_maximo):
     while True:
@@ -200,9 +210,11 @@ def validar_escolha(valor_minimo, valor_maximo):
         except ValueError:
             print("Entrada inválida, por favor digite um número.")
 
+
 def buscar_usuario(cpf, usuarios):
     usuario_filtrado = [usuario for usuario in usuarios if usuario.cpf == cpf]
     return usuario_filtrado[0] if usuario_filtrado else None
+
 
 def recuperar_conta(cliente):
     if not cliente.contas:
@@ -210,14 +222,19 @@ def recuperar_conta(cliente):
         return
     return cliente.contas[0]
 
+
 def log_transacao(funcao):
     def exibir_log(*args, **kwargs):
         resultado = funcao(*args, **kwargs)
         log = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-        with open(ROOT_PATH/ "log.txt", 'a') as arquivo:
-            arquivo.write(f"[{log}]  Funcão: '{funcao.__name__}' executada com argumentos {args}. Retornou {resultado}\n")
+        with open(ROOT_PATH / "log.txt", "a") as arquivo:
+            arquivo.write(
+                f"[{log}]  Funcão: '{funcao.__name__}' executada com argumentos {args}. Retornou {resultado}\n"
+            )
         return resultado
+
     return exibir_log
+
 
 @log_transacao
 def depositar(usuarios):
@@ -227,17 +244,17 @@ def depositar(usuarios):
     if not usuario:
         print("Cliente não encontrado, faça um cadastro!\n")
         return
-    
+
     valor = float(input("Informe o valor do depósito: "))
     transacao = Deposito(valor)
     print(f"Depósito no valor de R${valor} realizado com sucesso! ")
 
-
     conta = recuperar_conta(usuario)
     if not conta:
         return
-    
+
     usuario.realizar_transacao(conta, transacao)
+
 
 @log_transacao
 def sacar(usuarios):
@@ -247,7 +264,7 @@ def sacar(usuarios):
     if not usuario:
         print("Cliente não encontrado, faça um cadastro!\n")
         return
-    
+
     valor = float(input("Informe o valor do saque: "))
     transacao = Saque(valor)
     print(f"Saque no valor de R${valor} realizado com sucesso! ")
@@ -255,8 +272,9 @@ def sacar(usuarios):
     conta = recuperar_conta(usuario)
     if not conta:
         return
-    
+
     usuario.realizar_transacao(conta, transacao)
+
 
 def exibir_extrato(usuarios):
     print("\n==============Extrato==============\n")
@@ -271,9 +289,9 @@ def exibir_extrato(usuarios):
     conta = recuperar_conta(usuario)
     if not conta:
         return
-    
+
     tipo_transacao = input("Deseja filtrar por tipo de transação (saque, deposito)? Se não, deixe em branco: ").strip()
-    
+
     transacoes = conta.historico.gerar_relatorio(tipo_transacao) if tipo_transacao else conta.historico.transacoes
 
     if not transacoes:
@@ -282,9 +300,10 @@ def exibir_extrato(usuarios):
         extrato = ""
         for transacao in transacoes:
             extrato += f"\n{transacao['data']}\n{transacao['tipo']}:\n\tR${transacao['valor']:.2f}"
-    
+
     print(extrato)
     print(f"\nSaldo atual: R${conta.saldo:.2f}\n")
+
 
 @log_transacao
 def criar_nova_conta(numero_conta, usuarios, contas):
@@ -296,18 +315,22 @@ def criar_nova_conta(numero_conta, usuarios, contas):
     if not cliente:
         print("Cliente não encontrado, faça um cadastro!\n")
         return
-    
+
     conta = ContaCorrente.nova_conta(cliente, numero_conta)
     contas.append(conta)
     cliente.adicionar_conta(conta)
 
-    print("\nNova conta adicionada com sucesso, você pode verificar as contas vinculadas ao seu CPF em (Exibir Contas Cadastradas)\n")
+    print(
+        "\nNova conta adicionada com sucesso, você pode verificar as contas vinculadas ao seu CPF em (Exibir Contas Cadastradas)\n"
+    )
+
 
 def listar_contas(usuarios):
     print("\n==============Suas Contas==============\n")
     for usuario in usuarios:
         for conta in usuario.contas:
             print(f"CPF: {usuario.cpf}, Agência: {conta.agencia}, Conta: {conta.numero}\n")
+
 
 @log_transacao
 def criar_usuario(usuarios):
@@ -322,24 +345,24 @@ def criar_usuario(usuarios):
         return
 
     nome = input("Informe seu nome completo: ")
-    data_nascimento = input("Informe a data de nascimento conforme o modelo -> (DD/MM/AAAA): ")
-    endereco = input("Informe seu endereço conforme o exemplo -> (Logradouro, Cidade - Sigla do Estado): ")
+    data_nascimento = input("Informe a data de nascimento (DD/MM/AAAA): ")
+    endereco = input("Informe seu endereço (Endereco, Cidade-Sigla Estado): ")
     id += 1
-    
-    with open(ROOT_PATH/ "clientes.txt", "a", newline='') as arquivo:
-        writer = csv.writer(arquivo)
-        writer.writerow(['nome', 'data_nascimento', 'cpf', 'endereco'])
-        writer.writerow([nome, data_nascimento, cpf, endereco])
 
+    with open(ROOT_PATH / "clientes.txt", "a", newline="") as arquivo:
+        writer = csv.writer(arquivo)
+        writer.writerow(["nome", "data_nascimento", "cpf", "endereco"])
+        writer.writerow([nome, data_nascimento, cpf, endereco])
 
     cliente = PessoaFisica(nome, data_nascimento, cpf, endereco)
     usuarios.append(cliente)
 
-    print(f"\nSeja bem-vindo {nome}, sua conta foi criada com sucesso. Você já pode utilizar os benefícios.\n")
-    
+    print(f"\nSeja bem-vindo {nome}, sua conta foi criada com sucesso.\n")
+
 
 def menu_pagina_inicial():
-    print('''==============Seja bem-vindo ao banco DIO!==============\n
+    print(
+        """==============Seja bem-vindo ao banco DIO!==============\n
     Menu:
         1 - Cadastrar
         2 - Solicitar Nova Conta
@@ -348,7 +371,9 @@ def menu_pagina_inicial():
         5 - Sacar
         6 - Exibir Extrato
         7 - Sair
-    ''')
+    """
+    )
+
 
 def carregar_usuarios():
     usuarios = []
@@ -364,10 +389,11 @@ def carregar_usuarios():
         print("Arquivo não encontrado!")
     return usuarios
 
+
 def main():
-    usuarios = carregar_usuarios() 
+    usuarios = carregar_usuarios()
     contas = []
-    
+
     while True:
         menu_pagina_inicial()
         numero_da_operacao = validar_escolha(1, 7)
@@ -376,7 +402,7 @@ def main():
             criar_usuario(usuarios)
         elif numero_da_operacao == 2:
             numero_da_conta = len(contas) + 1
-            criar_nova_conta(numero_da_conta , usuarios, contas)
+            criar_nova_conta(numero_da_conta, usuarios, contas)
         elif numero_da_operacao == 3:
             listar_contas(usuarios)
         elif numero_da_operacao == 4:
@@ -388,5 +414,6 @@ def main():
         elif numero_da_operacao == 7:
             print("Programa finalizado com sucesso!")
             break
+
 
 main()
