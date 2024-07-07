@@ -1,7 +1,5 @@
 # Desafio DIO Modelando Banco de Dados com POO
 
-## Resolução do desafio se trata em usar POO para melhorar a estrutura do código.
-
 ## Mas afinal por que usar POO em meu código?
 A Programação Orientada a Objetos (POO) é um paradigma de programação que organiza software como uma coleção de objetos que interagem entre si. Aqui estão algumas razões pelas quais a POO é importante e amplamente utilizada:
 
