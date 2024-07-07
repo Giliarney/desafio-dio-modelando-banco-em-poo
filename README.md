@@ -1,4 +1,4 @@
-# desafio-dio-modelando-banco-em-poo
+# Desafio DIO Modelando Banco de Dados com POO
 
 ## Resolução do desafio se trata em usar POO para melhorar a estrutura do código.
 
